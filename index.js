@@ -30,6 +30,11 @@ const batchSize = 1000;
 
 (async function main() {
 
+  if (argv.v) {
+    console.log(`MongoDB: ${argv.mongo}`);
+    console.log(`sqlDB:   ${argv.sql}`);
+  }
+
   // region Setup pg
   const sqlDb = new Pool({
     connectionString: argv.sql,
@@ -69,7 +74,7 @@ const batchSize = 1000;
 
   // region Setup mongo
   const mongoClient = await MongoClient.connect(argv.mongo);
-  const mongoDb = mongoClient.db('mpirik');
+  const mongoDb = mongoClient.db(mongoClient.databaseName);
 
   // endregion
 
@@ -211,6 +216,7 @@ const batchSize = 1000;
       }
 
       console.timeEnd(`${sqlTable} - total time`);
+      console.log(`\t${count} - records migrated`);
     }
   }
 
