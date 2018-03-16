@@ -1,0 +1,17 @@
+{
+  "name": "bigal-mongo2sql",
+  "version": "1.0.0",
+  "description": "Migrate mongo collection to sql table",
+  "main": "index.js",
+  "author": "Jim Geurts <jim@biacreations.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bigal": "^1.1.4",
+    "js-yaml": "^3.11.0",
+    "lodash": "^4.17.5",
+    "mongodb": "^3.0.4",
+    "mz": "^2.7.0",
+    "pg": "^7.4.1",
+    "yargs": "^11.0.0"
+  }
+}
