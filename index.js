@@ -188,7 +188,7 @@ const batchSize = 1000;
               objectToInsert[bigalField] = value;
               if (dataShapingBySqlColumn[sqlColumn]) {
                 objectToInsert[bigalField] = dataShapingBySqlColumn[sqlColumn](value);
-              } else if (model._schema.attributes[bigalField].type === 'boolean' && _.isNull(value)) {
+              } else if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
                 objectToInsert[bigalField] = false;
               }
             }
