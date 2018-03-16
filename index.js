@@ -207,6 +207,7 @@ const batchSize = 1000;
         });
 
         console.timeEnd(`${sqlTable} - ${startCount}`);
+        count += records.length;
       }
 
       console.timeEnd(`${sqlTable} - total time`);
