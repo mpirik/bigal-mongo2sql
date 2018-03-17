@@ -173,7 +173,7 @@ const batchSize = 1000;
 
         records = await collection.find({
           pgReplicated: null,
-        }, queryProjection).limit(batchSize).toArray();
+        }).limit(batchSize).toArray();
 
         await model.create(records.map((record) => {
           const objectToInsert = {};
