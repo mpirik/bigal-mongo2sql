@@ -166,10 +166,11 @@ const batchSize = 1000;
       }
 
       let count = 0;
+      let lastCountDisplayed = 0;
       let records;
       while (!records || records.length) {
         const startCount = count + batchSize;
-        console.time(`${sqlTable} - ${startCount}`);
+        console.time(`${sqlTable} - ${lastCountDisplayed}-${startCount}`);
 
         records = await collection.find({
           pgReplicated: null,
@@ -186,10 +187,21 @@ const batchSize = 1000;
               }
 
               objectToInsert[bigalField] = value;
-              if (dataShapingBySqlColumn[sqlColumn]) {
-                objectToInsert[bigalField] = dataShapingBySqlColumn[sqlColumn](value);
-              } else if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
+
+              if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
+                // Falsey values worked in mongo - sql likes actual boolean values
                 objectToInsert[bigalField] = false;
+              } else if (model._schema.attributes[bigalField].type === 'datetime' && !value) {
+                // Prevent trying to save empty strings as timestamps
+                if (model._schema.attributes[bigalField].defaultsTo) {
+                  objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
+                } else {
+                  delete objectToInsert[bigalField];
+                }
+              }else if (_.isNull(value) && model._schema.attributes[bigalField].defaultsTo) {
+                objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
+              } else if (dataShapingBySqlColumn[sqlColumn]) {
+                objectToInsert[bigalField] = dataShapingBySqlColumn[sqlColumn](value);
               }
             }
           }
@@ -211,8 +223,9 @@ const batchSize = 1000;
           }
         });
 
-        console.timeEnd(`${sqlTable} - ${startCount}`);
+        console.timeEnd(`${sqlTable} - ${lastCountDisplayed}-${startCount}`);
         count += records.length;
+        lastCountDisplayed = count;
       }
 
       console.timeEnd(`${sqlTable} - total time`);
