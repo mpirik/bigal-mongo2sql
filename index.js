@@ -123,7 +123,8 @@ const batchSize = 1000;
 
         sqlColumnsByMongoColumn[mongoColumn || sqlColumn] = sqlColumn;
 
-        if (type.toUpperCase() === 'TEXT') {
+        switch (type.toUpperCase()) {
+          case 'TEXT':
             dataShapingBySqlColumn[sqlColumn] = (val) => {
               if (_.isNil(val)) {
                 return val;
@@ -135,6 +136,18 @@ const batchSize = 1000;
 
               return String(val);
             };
+            break;
+          case 'BYTEA':
+            dataShapingBySqlColumn[sqlColumn] = (val) => {
+              if (_.isNil(val)) {
+                return val;
+              }
+
+              return Buffer.from(val, 'base64');
+            };
+            break;
+          default:
+            break;
         }
       }
 
