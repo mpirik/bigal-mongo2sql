@@ -204,7 +204,7 @@ const batchSize = 1000;
               if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
                 // Falsey values worked in mongo - sql likes actual boolean values
                 objectToInsert[bigalField] = false;
-              } else if (model._schema.attributes[bigalField].type === 'datetime' && !value) {
+              } else if ((model._schema.attributes[bigalField].type === 'datetime' || model._schema.attributes[bigalField].type === 'date') && !value) {
                 // Prevent trying to save empty strings as timestamps
                 if (model._schema.attributes[bigalField].defaultsTo) {
                   objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
