@@ -182,12 +182,21 @@ const batchSize = 1000;
       let lastCountDisplayed = 0;
       let records;
       while (!records || records.length) {
+        const stopFileExists = await fs.exists(path.join(__dirname, 'stop.txt'))
+        if (stopFileExists) {
+          break;
+        }
+
         const startCount = count + batchSize;
         console.time(`${sqlTable} - ${lastCountDisplayed}-${startCount}`);
 
         records = await collection.find({
           pgReplicated: null,
         }).limit(batchSize).toArray();
+
+        if (argv.v) {
+          console.log(JSON.stringify(records, null, 1));
+        }
 
         await model.create(records.map((record) => {
           const objectToInsert = {};
