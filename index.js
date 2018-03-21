@@ -194,56 +194,61 @@ const batchSize = 1000;
           pgReplicated: null,
         }).limit(batchSize).toArray();
 
-        if (argv.v) {
-          console.log(JSON.stringify(records, null, 1));
-        }
 
-        await model.create(records.map((record) => {
-          const objectToInsert = {};
-          for (const [field, value] of Object.entries(record)) {
-            if (queryProjection[field]) {
-              const sqlColumn = sqlColumnsByMongoColumn[field];
-              const bigalField = fieldsBySqlColumn[sqlColumn];
-              if (!model._schema.attributes[bigalField]) {
-                throw new Error(`Unable to find field in schema: ${field}`);
-              }
+        if (_.some(records)) {
+          if (argv.v) {
+            console.log(JSON.stringify(records, null, 1));
+          }
 
-              objectToInsert[bigalField] = value;
-
-              if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
-                // Falsey values worked in mongo - sql likes actual boolean values
-                objectToInsert[bigalField] = false;
-              } else if ((model._schema.attributes[bigalField].type === 'datetime' || model._schema.attributes[bigalField].type === 'date') && !value) {
-                // Prevent trying to save empty strings as timestamps
-                if (model._schema.attributes[bigalField].defaultsTo) {
-                  objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
-                } else {
-                  delete objectToInsert[bigalField];
+          await model.create(records.map((record) => {
+            const objectToInsert = {};
+            for (const [field, value] of Object.entries(record)) {
+              if (queryProjection[field]) {
+                const sqlColumn = sqlColumnsByMongoColumn[field];
+                const bigalField = fieldsBySqlColumn[sqlColumn];
+                if (!model._schema.attributes[bigalField]) {
+                  throw new Error(`Unable to find field in schema: ${field}`);
                 }
-              }else if (_.isNull(value) && model._schema.attributes[bigalField].defaultsTo) {
-                objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
-              } else if (dataShapingBySqlColumn[sqlColumn]) {
-                objectToInsert[bigalField] = dataShapingBySqlColumn[sqlColumn](value);
+
+                objectToInsert[bigalField] = value;
+
+                if (model._schema.attributes[bigalField].type === 'boolean' && !value) {
+                  // Falsey values worked in mongo - sql likes actual boolean values
+                  objectToInsert[bigalField] = false;
+                } else if ((model._schema.attributes[bigalField].type === 'datetime' || model._schema.attributes[bigalField].type === 'date') && !value) {
+                  // Prevent trying to save empty strings as timestamps
+                  if (model._schema.attributes[bigalField].defaultsTo) {
+                    objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
+                  } else {
+                    delete objectToInsert[bigalField];
+                  }
+                } else if (_.isNull(value) && model._schema.attributes[bigalField].defaultsTo) {
+                  objectToInsert[bigalField] = model._schema.attributes[bigalField].defaultsTo;
+                } else if (dataShapingBySqlColumn[sqlColumn]) {
+                  objectToInsert[bigalField] = dataShapingBySqlColumn[sqlColumn](value);
+                }
               }
             }
-          }
 
-          if (argv.v) {
-            console.log(JSON.stringify(objectToInsert, null, 1));
-          }
+            if (argv.v) {
+              console.log(JSON.stringify(objectToInsert, null, 1));
+            }
 
-          return objectToInsert;
-        }));
+            return objectToInsert;
+          }), {
+            returnRecords: false,
+          });
 
-        await collection.updateMany({
-          _id: {
-            $in: _.map(records, '_id')
-          },
-        }, {
-          $set: {
-            pgReplicated: true,
-          }
-        });
+          await collection.updateMany({
+            _id: {
+              $in: _.map(records, '_id')
+            },
+          }, {
+            $set: {
+              pgReplicated: true,
+            }
+          });
+        }
 
         console.timeEnd(`${sqlTable} - ${lastCountDisplayed}-${startCount}`);
         count += records.length;
