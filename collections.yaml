@@ -1,0 +1,23 @@
+your_project:
+  mongotablename:
+    :columns:
+      - id:
+        :type: TEXT
+        :source: _id
+      - name: TEXT
+      - user_id:
+        :type: TEXT
+        :source: user
+      - foo_ids:
+        :type: TEXT ARRAY
+        :source: foos
+      - data: JSONB
+      - image: BYTEA
+      - created_at:
+        :type: TIMESTAMP WITH TIME ZONE
+        :source: createdAt
+      - updated_at:
+        :type: TIMESTAMP WITH TIME ZONE
+        :source: updatedAt
+    :meta:
+      :table: table_name_in_pg
